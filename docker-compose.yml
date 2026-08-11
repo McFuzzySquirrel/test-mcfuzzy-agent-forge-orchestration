@@ -1,0 +1,40 @@
+name: tasker-mail
+
+services:
+  # PostgreSQL 16 - application database.
+  # Host ports and credentials match the defaults documented in .env.example.
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: tasker_mail
+      POSTGRES_USER: tasker
+      POSTGRES_PASSWORD: tasker
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # MailHog - local SMTP sink for development email notifications.
+  # SMTP on 1025 (matches SMTP_PORT in .env.example); HTTP UI/API on 8025.
+  mailhog:
+    image: mailhog/mailhog
+    environment:
+      MH_SMTP_BIND_ADDR: 0.0.0.0:1025
+      MH_UI_BIND_ADDR: 0.0.0.0:8025
+      MH_API_BIND_ADDR: 0.0.0.0:8025
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI / HTTP API
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8025/api/v2/info"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

@@ -1,0 +1,33 @@
+{
+  "name": "tasker-mail",
+  "version": "1.0.0",
+  "description": "A simple task manager with email notifications (Express + PostgreSQL)",
+  "private": true,
+  "main": "src/index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest --passWithNoTests",
+    "lint": "find src tests -name '*.js' -print0 | xargs -0 -r -n1 node --check"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "nodemailer": "^9.0.5",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "supertest": "^7.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "<rootDir>/tests/**/*.test.js"
+    ],
+    "clearMocks": true
+  }
+}

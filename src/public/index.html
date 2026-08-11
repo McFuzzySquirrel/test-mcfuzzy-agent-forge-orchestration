@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasker Mail</title>
+  <style>
+    /* Tasker Mail minimal UI - PRD §12. Single small stylesheet, no framework.
+       Contrast pairs meet WCAG 2.1 AA (ACC-03). */
+    :root {
+      --text: #212529;
+      --text-muted: #5c636a;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --border: #d4d7db;
+      --focus: #0d6efd;
+      --danger: #dc3545;
+      --danger-hover: #bb2d3b;
+      --primary: #0d6efd;
+      --primary-hover: #0b5ed7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    /* Visible focus ring for keyboard users (ACC-01). */
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    .app-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 1rem;
+    }
+
+    .app-header h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+    }
+
+    .app-header .tagline {
+      margin: 0.15rem 0 0;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .panel h2 {
+      margin: 0 0 1rem;
+      font-size: 1.15rem;
+    }
+
+    /* Status / error region (ACC-02): server and client errors are announced
+       in the DOM via aria-live (role is switched to alert on errors). */
+    .status {
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      border: 1px solid transparent;
+    }
+
+    .status[hidden] {
+      display: none;
+    }
+
+    .status-error {
+      color: #842029;
+      background: #f8d7da;
+      border-color: #f1aeb5;
+    }
+
+    .status-success {
+      color: #0f5132;
+      background: #d1e7dd;
+      border-color: #a3cfbb;
+    }
+
+    .field {
+      margin-bottom: 1rem;
+    }
+
+    .field label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .field input {
+      max-width: 26rem;
+    }
+
+    .field textarea {
+      resize: vertical;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.55rem 1rem;
+      font: inherit;
+      font-weight: 600;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      color: #fff;
+      background: var(--primary);
+    }
+
+    .btn-primary:hover:not([disabled]) {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      color: #fff;
+      background: #6c757d;
+    }
+
+    .btn-secondary:hover:not([disabled]) {
+      background: #5c636a;
+    }
+
+    .btn-danger {
+      color: #fff;
+      background: var(--danger);
+    }
+
+    .btn-danger:hover:not([disabled]) {
+      background: var(--danger-hover);
+    }
+
+    .muted {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .task-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .task {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 1rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .task:first-child {
+      border-top: none;
+    }
+
+    .task-main {
+      flex: 1 1 16rem;
+      min-width: 0;
+    }
+
+    .task-title {
+      margin: 0 0 0.2rem;
+      font-size: 1.05rem;
+    }
+
+    .task-description {
+      margin: 0 0 0.3rem;
+      color: #3d4349;
+    }
+
+    .task-meta {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      overflow-wrap: anywhere;
+    }
+
+    .task-side {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      align-items: flex-end;
+    }
+
+    .badges {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.4;
+      border-radius: 999px;
+    }
+
+    /* Badge color pairs all meet WCAG 2.1 AA (ACC-03). */
+    .badge-pending    { color: #664d03; background: #fff3cd; }
+    .badge-completed  { color: #0f5132; background: #d1e7dd; }
+    .badge-notif-pending { color: #41464b; background: #e2e3e5; }
+    .badge-notif-sent    { color: #055160; background: #cff4fc; }
+    .badge-notif-failed  { color: #842029; background: #f8d7da; }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .actions .btn {
+      padding: 0.4rem 0.85rem;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header: product name (PRD §12). -->
+  <header class="app-header">
+    <h1>Tasker Mail</h1>
+    <p class="tagline">Tasks with email notifications</p>
+  </header>
+
+  <main class="container">
+    <!-- Server/client messages land here and are announced (ACC-02). -->
+    <div id="app-status" class="status" role="status" aria-live="polite" hidden></div>
+
+    <!-- Create form (PRD §12): title, description, notify email, submit. -->
+    <section class="panel" aria-labelledby="create-heading">
+      <h2 id="create-heading">New task</h2>
+      <form id="create-form" novalidate>
+        <div class="field">
+          <label for="task-title">Title</label>
+          <input
+            type="text"
+            id="task-title"
+            name="title"
+            maxlength="200"
+            autocomplete="off"
+            placeholder="What needs doing?"
+          >
+        </div>
+        <div class="field">
+          <label for="task-description">Description</label>
+          <textarea
+            id="task-description"
+            name="description"
+            rows="3"
+            maxlength="2000"
+            placeholder="Optional details (shown truncated in the list)"
+          ></textarea>
+        </div>
+        <div class="field">
+          <label for="task-email">Notify email</label>
+          <input
+            type="email"
+            id="task-email"
+            name="notify_email"
+            autocomplete="email"
+            placeholder="you@example.com"
+          >
+        </div>
+        <button type="submit" class="btn btn-primary" id="create-btn">Create task</button>
+      </form>
+    </section>
+
+    <!-- Task list (PRD §12): status + notification badges, Complete/Reopen and
+         Delete actions per row (FR-15..FR-17). -->
+    <section class="panel" aria-labelledby="list-heading">
+      <h2 id="list-heading">Tasks</h2>
+      <p id="list-meta" class="muted" role="status" aria-live="polite">Loading tasks…</p>
+      <ul id="task-list" class="task-list"></ul>
+      <p id="empty-state" class="muted" hidden>No tasks yet. Create your first task above.</p>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
